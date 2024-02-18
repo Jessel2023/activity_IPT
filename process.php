@@ -11,12 +11,12 @@ if (isset($_POST['login'])) {
 
     $login_query = "SELECT username, password, role FROM user WHERE username = ? ";
 
-    $stmt = $con->prepare($login_query);
+    $login_query_run = $con->prepare($login_query);
 
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
+    $login_query_run->bind_param("s", $username);
+    $login_query_run->execute();
 
-    $result = $stmt->get_result();
+    $result = $login_query_run->get_result();
 
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
