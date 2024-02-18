@@ -1,27 +1,39 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+
 include("config.php");
 
 if (isset($_POST['login'])) {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    $login_query = "SELECT username, password, role FROM user LIMIT 1";
+    $login_query = "SELECT username, password, role FROM user WHERE username = ? ";
 
-    $login_query_run = mysqli_query($con, $login_query);
-    echo "Login Success! ";
-    echo "Welcome $username";
+    $stmt = $con->prepare($login_query);
 
-    if(mysqli_num_row($login_query_run)> 0 ) {
-        $row = mysqli_fetch_assoc($sql_run);
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
         $role = $row['role'];
 
-        if($role == 1) {
+        if ($role == 1) {
             header("Location: admin.php");
-        }
-        else if ($role == 2) {
+            exit(); 
+        } elseif ($role == 2) {
             header("Location: student.php");
+            exit();
         }
+    } else {
+        echo "Login failed. User does not exist.";
     }
+
+    $stmt->close();
 }
 
 if (isset($_POST["register"])) {
