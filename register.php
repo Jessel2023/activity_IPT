@@ -29,7 +29,16 @@
         <label for="password">Password</label>
         <input name="password" type="password" class="form-control" id="password" placeholder="Password">
     </div>
-    <button type="submit" name="register" class="btn btn-primary">Submit</button>
+    <div class="form-group">
+  <label for="role">Choose role:</label>
+    <select name="role" id="role">
+        <option value="1">Admin</option>
+        <option value="2">Student</option>
+    </select>
+  </div>
+    <button type="submit" name="register" class="btn btn-primary">Register</button>
+    <a href="index.php" class="btn btn-primary">Login</a>
+
 </form>
 </body>
 </html>

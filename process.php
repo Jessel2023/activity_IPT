@@ -9,7 +9,7 @@ if (isset($_POST['login'])) {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    $login_query = "SELECT username, password, role FROM user WHERE username = ? ";
+    $login_query = "SELECT username, password, role FROM user WHERE username = ? LIMIT 1 ";
 
     $login_query_run = $con->prepare($login_query);
 
@@ -42,6 +42,7 @@ if (isset($_POST["register"])) {
     $last_name = $_POST["last_name"];
     $username = $_POST["username"];
     $password = $_POST["password"];
+    $role = $_POST["role"];
 
     // Print out the received values for debugging
     echo "First Name: $first_name<br>";
@@ -49,10 +50,18 @@ if (isset($_POST["register"])) {
     echo "Last Name: $last_name<br>";
     echo "Username: $username<br>";
     echo "Password: $password<br>";
+    
+    if ($role == 1) {
+        echo "Role: Admin <br>";
+    } else {
+        echo "Role: Student <br>";
+    }
+ 
+
 
 
     // Prepare and execute the SQL query
-    $query = "INSERT INTO user (first_name, middle_name, last_name, username, password) VALUES ('$first_name', '$middle_name', '$last_name', '$username', '$password')";
+    $query = "INSERT INTO user (first_name, middle_name, last_name, username, password, role) VALUES ('$first_name', '$middle_name', '$last_name', '$username', '$password', '$role')";
     $query_run = mysqli_query($con, $query);
 
     if ($query_run) {
