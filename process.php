@@ -1,77 +1,217 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-
+session_start();    
 include("config.php");
 
-if (isset($_POST['login'])) {
-    $username = $_POST['username'];
+// if(isset($_POST["loginButton"])){
+
+//     $email = $_POST['email'];
+//     $password = $_POST['password'];
+
+//     $login_query = "SELECT `id`, `email`, `password`, `fname`, `mname`, `lname` FROM `users` WHERE `email` = '$email' AND `password` = '$password' LIMIT 1 ";
+//     $login_result = mysqli_query($con, $login_query);
+
+//     if(mysqli_num_rows($login_result) == 1){
+//         $_SESSION['status'] = "Welcome!";
+//         $_SESSION['status_code'] = "success";
+//         header("Location: index.php");
+//         exit();
+//     }else{
+//         $_SESSION['status'] = "Invalid Username/Password";
+//         $_SESSION['status_code'] = "error";
+//         header("Location: login.php");
+//         exit();
+//     }
+// }
+
+
+
+
+
+if(isset($_POST["registerButton"])){
+
+    $email = $_POST['email'];
+    $password = $_POST['password'];
+    $repassword = $_POST['repassword'];
+    $fname = $_POST['fname'];
+    $mname = isset($_POST['mname']) ? $_POST['mname'] : '' ;
+    $lname = $_POST['lname'];
+
+    $check_email_query = "SELECT * FROM `users` WHERE `email` = '$email'";
+    $email_result = mysqli_query($con,$check_email_query);
+    $email_count = mysqli_fetch_array($email_result)[0];
+
+    if($email_count > 0){
+        $_SESSION['status'] = "Email address already taken";
+        $_SESSION['status_code'] = "error";
+        header("Location: register.php");
+        exit();
+    }
+
+    if ($password !== $repassword){
+        $_SESSION['status'] = "Password does not match";
+        $_SESSION['status_code'] = "error";
+        header("Location: register.php");
+        exit();
+    }
+
+
+    $query = "INSERT INTO `users`(`email`, `password`, `fname`, `mname`, `lname`) VALUES ('$email','$password','$fname','$mname','$lname')";
+    $query_result = mysqli_query( $con, $query );
+
+    if($query_result){
+        $_SESSION['status'] = "Registration Sucess!";
+        $_SESSION['status_code'] = "success";
+        header("Location: login.php");
+        exit();
+    }
+}
+
+
+if(isset($_POST["loginButton"])){
+
+    $email = $_POST['email'];
     $password = $_POST['password'];
 
-    $login_query = "SELECT username, password, role FROM user WHERE username = ? LIMIT 1 ";
+    $login_query = "SELECT `id`, `email`, `password`, `fname`, `mname`, `lname` FROM `users` WHERE `email` = '$email' AND `password` = '$password' LIMIT 1 ";
+    $login_result = mysqli_query($con, $login_query);
 
-    $login_query_run = $con->prepare($login_query);
+    if($login_result){
+        if (mysqli_num_rows($login_result) > 0){    
+            $data = mysqli_fetch_assoc($login_result);
 
-    $login_query_run->bind_param("s", $username);
-    $login_query_run->execute();
+            $user_id = $data['id'];
+            $full_name = $data['fname'] . '' . $data['mname'] . '' . $data['lname'];
+            $user_mail = $data['email'];
 
-    $result = $login_query_run->get_result();
+            $_SESSION['auth'] = true;
+            $_SESSION['auth_user'] = [
+                'user_id' => $user_id,
+                'user_name' => $full_name,
+                'user_email' => $user_email,
+            ];
 
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        $role = $row['role'];
+            $_SESSION['status'] = "Welcome $full_name!";
+            $_SESSION['status_code'] = "success";
+            header("Location: index.php");
+            exit();
+    }else{
+        $_SESSION['status'] = "Invalid Username/Password";
+        $_SESSION['status_code'] = "error";
+        header("Location: login.php");
+        exit();
+    }
+}else{
+            $_SESSION['status'] = "Error executing the login query" . mysqli_error( $con );
+            $_SESSION['status_code'] = "success";
+            header("Location: login.php");
+            exit();
+}
+}
 
-        if ($role == 1) {
-            header("Location: admin.php");
-            exit(); 
-        } elseif ($role == 2) {
-            header("Location: student.php");
+if(isset($_POST["addStudent"])){
+
+    $fname = $_POST['fname'];
+    $lname = $_POST['lname'];
+    $year = $_POST['year'];
+    $section = $_POST['section'];
+
+    echo $student_id;
+    echo $fname;
+    echo $lname;
+    echo $year;
+    echo $section;
+
+
+
+    $query = "INSERT INTO `students`(`fname`, `lname`, `year`, `section`) VALUES ('$fname','$lname','$year','$section')";
+    $query_result = mysqli_query( $con, $query );
+
+    if($query_result){
+        $_SESSION['status'] = "Student Successfully Added!";
+        $_SESSION['status_code'] = "success";
+        header("Location: index.php");
+        exit();
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['student_id']) && isset($_POST['fname']) && isset($_POST['lname']) && isset($_POST['year']) && isset($_POST['section'])) {
+        $student_id = $_POST['student_id'];
+        $fname = $_POST['fname'];
+        $lname = $_POST['lname'];
+        $year = $_POST['year'];
+        $section = $_POST['section'];
+
+        // Prepare the SQL query with a WHERE clause to update the record with a specific student ID
+        $query = "UPDATE students SET fname = '$fname', lname = '$lname', year = '$year', section = '$section' WHERE student_id = '$student_id'";
+        $result = mysqli_query($con, $query);
+
+        if ($result) {
+            $_SESSION['status'] = "Student Successfully Updated!";
+            $_SESSION['status_code'] = "success";
+            header("Location: index.php"); // Redirect to index page after successful update
+            exit();
+        } else {
+            $_SESSION['status'] = "Error updating student record";
+            $_SESSION['status_code'] = "error";
+            header("Location: updateStudent.php"); // Redirect back to the update page with an error message
             exit();
         }
     } else {
-        echo "Login failed. User does not exist.";
+        $_SESSION['status'] = "One or more required fields are not set";
+        $_SESSION['status_code'] = "error";
+        header("Location: updateStudent.php"); // Redirect back to the update page with an error message
+        exit();
     }
-
-    $stmt->close();
+} else {
+    $_SESSION['status'] = "Invalid request method";
+    $_SESSION['status_code'] = "error";
+    header("Location: updateStudent.php"); // Redirect back to the update page with an error message
+    exit();
 }
 
-if (isset($_POST["register"])) {
-    $first_name = $_POST["first_name"];
-    $middle_name = $_POST["middle_name"];
-    $last_name = $_POST["last_name"];
-    $username = $_POST["username"];
-    $password = $_POST["password"];
-    $role = $_POST["role"];
+if (isset($_POST['student_id'])) {
+    $student_id = $_POST['student_id'];
 
-    // Print out the received values for debugging
-    echo "First Name: $first_name<br>";
-    echo "Middle Name: $middle_name<br>";
-    echo "Last Name: $last_name<br>";
-    echo "Username: $username<br>";
-    echo "Password: $password<br>";
-    
-    if ($role == 1) {
-        echo "Role: Admin <br>";
+    // Prepare and execute the SQL query to delete the student
+    $query = "DELETE FROM students WHERE student_id = '$student_id'";
+    $result = mysqli_query($con, $query);
+
+    if ($result) {
+        // Set success message in session variable
+        $_SESSION['status'] = "Student successfully deleted!";
+        $_SESSION['status_code'] = "success";
     } else {
-        echo "Role: Student <br>";
+        // Set error message in session variable
+        $_SESSION['status'] = "Error deleting student.";
+        $_SESSION['status_code'] = "error";
     }
- 
-
-
-
-    // Prepare and execute the SQL query
-    $query = "INSERT INTO user (first_name, middle_name, last_name, username, password, role) VALUES ('$first_name', '$middle_name', '$last_name', '$username', '$password', '$role')";
-    $query_run = mysqli_query($con, $query);
-
-    if ($query_run) {
-        echo "Registration Successful";
-    } else {
-        echo "Registration Failed";
-    }
-
+} else {
+    // Set error message in session variable if student_id is not set
+    $_SESSION['status'] = "Student ID not provided.";
+    $_SESSION['status_code'] = "error";
 }
 
+
+if (isset($_POST['delete'])) {
+    $student_id = $con->real_escape_string($_POST['student_id']); // Escape the value to prevent SQL injection
+
+    $sql = "DELETE FROM `students` WHERE student_id = '$student_id'"; // Ensure student_id is enclosed in single quotes
+    if ($con->query($sql) === TRUE) {
+        $_SESSION['status'] = "Student with ID $student_id has been deleted.";
+        $_SESSION['status_code'] = "success";
+    } else {
+        $_SESSION['status'] = "Failed to delete student with ID $student_id: " . $con->error;
+        $_SESSION['status_code'] = "error";
+    }
+    header("Location: index.php"); // Redirect back to the index page
+    exit();
+} else {
+    $_SESSION['status'] = "Delete operation not initiated.";
+    $_SESSION['status_code'] = "error";
+    header("Location: index.php"); // Redirect back to the index page with an error message
+    exit();
+}
 
 
 ?>

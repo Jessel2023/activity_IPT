@@ -6,6 +6,10 @@
     <title>Document</title>
 </head>
 <body>
-    <header> Welcome Admin! </header>
 </body>
+<footer class="footer mt-auto py-3 bg-dark text-white">
+  <div class="container text-center">
+    <span class="text-white">© 2024 Jessel Joy Velasco | R7, R11 </span>
+  </div>
+</footer>
 </html>
